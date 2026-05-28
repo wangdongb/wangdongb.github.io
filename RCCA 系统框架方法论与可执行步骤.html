@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RCCA 系统框架方法论与可执行步骤 — 完整版</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#312e81 100%);
+  color:#e2e8f0; min-height:100vh; padding:24px; line-height:1.7;
+}
+.container { max-width:1280px; margin:0 auto; }
+.hero {
+  text-align:center; padding:50px 20px 40px;
+  background: rgba(255,255,255,0.04);
+  border-radius:24px; margin-bottom:30px;
+  border:1px solid rgba(148,163,184,0.15);
+}
+.hero h1 { font-size:2.4em; margin-bottom:12px; background: linear-gradient(135deg,#60a5fa,#a78bfa,#f472b6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.hero .subtitle { font-size:1.05em; color:#94a3b8; }
+.hero .badge { display:inline-block; padding:6px 14px; margin:6px 4px 0; background:rgba(96,165,250,.15); color:#93c5fd; border-radius:20px; font-size:.85em; border:1px solid rgba(96,165,250,.3); }
+
+.section { background: rgba(255,255,255,0.04); border-radius:20px; padding:32px; margin-bottom:24px; border:1px solid rgba(148,163,184,0.12); }
+.section h2 { font-size:1.8em; margin-bottom:18px; padding-bottom:12px; border-bottom:2px solid rgba(96,165,250,.3); display:flex; align-items:center; gap:10px; }
+.section h3 { font-size:1.3em; margin:22px 0 12px; color:#c4b5fd; }
+.section h4 { font-size:1.05em; margin:14px 0 8px; color:#a5b4fc; }
+.section p { margin-bottom:10px; color:#cbd5e1; }
+.section ul, .section ol { padding-left:22px; margin:10px 0; }
+.section li { margin-bottom:6px; color:#cbd5e1; }
+.section strong { color:#fbbf24; }
+.section code { background:rgba(15,23,42,.6); padding:2px 6px; border-radius:4px; color:#fbbf24; font-size:.92em; }
+
+/* 流程图 */
+.flow {
+  display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap:14px; margin:20px 0;
+}
+.flow-step {
+  background: linear-gradient(135deg, rgba(96,165,250,.15), rgba(167,139,250,.15));
+  border:1px solid rgba(167,139,250,.3);
+  border-radius:14px; padding:16px; position:relative;
+  transition: transform .25s;
+}
+.flow-step:hover { transform: translateY(-4px); border-color:#a78bfa; }
+.flow-step .num { position:absolute; top:-12px; left:14px; background:linear-gradient(135deg,#60a5fa,#a78bfa); color:#fff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:.9em; }
+.flow-step .title { font-weight:bold; font-size:1.05em; margin:8px 0 6px; color:#f1f5f9; }
+.flow-step .desc { font-size:.85em; color:#94a3b8; }
+.flow-step .out { font-size:.8em; color:#86efac; margin-top:8px; padding-top:8px; border-top:1px dashed rgba(148,163,184,.2); }
+
+/* 阶段卡片 */
+.phase-card {
+  background: linear-gradient(135deg, rgba(15,23,42,.6), rgba(30,27,75,.4));
+  border-radius:18px; padding:28px; margin-bottom:24px;
+  border-left: 5px solid #a78bfa;
+  border-top:1px solid rgba(148,163,184,.1);
+  border-right:1px solid rgba(148,163,184,.1);
+  border-bottom:1px solid rgba(148,163,184,.1);
+}
+.phase-card.p0 { border-left-color:#94a3b8; }
+.phase-card.p1 { border-left-color:#60a5fa; }
+.phase-card.p2 { border-left-color:#818cf8; }
+.phase-card.p3 { border-left-color:#a78bfa; }
+.phase-card.p4 { border-left-color:#c084fc; }
+.phase-card.p5 { border-left-color:#e879f9; }
+.phase-card.p6 { border-left-color:#f472b6; }
+.phase-card.p7 { border-left-color:#fb7185; }
+.phase-card.p8 { border-left-color:#f59e0b; }
+.phase-card.p9 { border-left-color:#84cc16; }
+.phase-card.p10 { border-left-color:#10b981; }
+.phase-header { display:flex; align-items:flex-start; gap:14px; margin-bottom:16px; }
+.phase-num { background: linear-gradient(135deg,#60a5fa,#a78bfa); color:#fff; min-width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:1.2em; }
+.phase-title { flex:1; }
+.phase-title h3 { color:#f1f5f9; font-size:1.4em; margin:0 0 4px; }
+.phase-title .meta { color:#94a3b8; font-size:.9em; }
+
+.block { background: rgba(15,23,42,.5); padding:14px 18px; border-radius:10px; margin:12px 0; border-left:3px solid rgba(148,163,184,.3); }
+.block.action { border-left-color:#60a5fa; }
+.block.tool { border-left-color:#a78bfa; }
+.block.output { border-left-color:#86efac; }
+.block.template { border-left-color:#fbbf24; }
+.block.trap { border-left-color:#f87171; }
+.block-label { display:inline-block; font-size:.8em; padding:2px 10px; border-radius:12px; font-weight:bold; margin-bottom:8px; }
+.block.action .block-label { background:rgba(96,165,250,.2); color:#93c5fd; }
+.block.tool .block-label { background:rgba(167,139,250,.2); color:#c4b5fd; }
+.block.output .block-label { background:rgba(134,239,172,.2); color:#86efac; }
+.block.template .block-label { background:rgba(251,191,36,.2); color:#fcd34d; }
+.block.trap .block-label { background:rgba(248,113,113,.2); color:#fca5a5; }
+
+/* 表格 */
+table { width:100%; border-collapse:collapse; margin:14px 0; font-size:.92em; }
+table th { background: rgba(96,165,250,.2); color:#93c5fd; padding:10px; text-align:left; border-bottom:2px solid rgba(96,165,250,.3); }
+table td { padding:10px; border-bottom:1px solid rgba(148,163,184,.15); color:#cbd5e1; vertical-align:top; }
+table tr:hover { background: rgba(96,165,250,.05); }
+
+/* 代码块/模板 */
+pre { background:#0b1220; padding:14px 18px; border-radius:10px; overflow-x:auto; margin:10px 0; border:1px solid rgba(148,163,184,.15); font-size:.88em; line-height:1.6; }
+pre code { background:transparent; padding:0; color:#e2e8f0; }
+
+/* 高亮提示 */
+.callout { padding:14px 18px; border-radius:10px; margin:12px 0; }
+.callout.tip { background: rgba(34,197,94,.1); border-left:3px solid #22c55e; }
+.callout.warn { background: rgba(248,113,113,.1); border-left:3px solid #f87171; }
+.callout.info { background: rgba(96,165,250,.1); border-left:3px solid #60a5fa; }
+
+/* 工具网格 */
+.tool-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap:12px; margin:14px 0; }
+.tool-card { background: rgba(15,23,42,.5); padding:14px; border-radius:10px; border:1px solid rgba(148,163,184,.15); }
+.tool-card .tn { font-weight:bold; color:#fbbf24; margin-bottom:6px; }
+.tool-card .td { font-size:.88em; color:#94a3b8; }
+
+.toc { background: rgba(15,23,42,.4); padding:18px; border-radius:14px; margin-bottom:30px; }
+.toc h3 { color:#a5b4fc; margin-bottom:10px; }
+.toc ol { columns: 2; column-gap:30px; padding-left:20px; }
+.toc a { color:#93c5fd; text-decoration:none; }
+.toc a:hover { color:#fbbf24; }
+
+@media (max-width:720px) {
+  .toc ol { columns:1; }
+  .hero h1 { font-size:1.6em; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HERO -->
+<div class="hero">
+  <h1>🛠️ RCCA 系统框架方法论与可执行步骤</h1>
+  <div class="subtitle">Root Cause Corrective Action — 从问题定义到闭环跟踪的完整工作手册</div>
+  <div style="margin-top:18px;">
+    <span class="badge">📘 实战流程</span>
+    <span class="badge">📚 26 种工具</span>
+    <span class="badge">⚙️ 可直接执行</span>
+  </div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <h3>📑 目录</h3>
+  <ol>
+    <li><a href="#p1">RCCA 是什么 + 为什么 + 什么时候用</a></li>
+    <li><a href="#p2">10 阶段流程总览</a></li>
+    <li><a href="#p3">阶段 0：立项准备 — 成立分析小组</a></li>
+    <li><a href="#p4">阶段 1：定义问题 — 4W1H1S + HTDQ</a></li>
+    <li><a href="#p5">阶段 2：分解问题 — 逆向 + 正向</a></li>
+    <li><a href="#p6">阶段 3：去除非关键 — 收敛</a></li>
+    <li><a href="#p7">阶段 4：制定工作计划 — PDCA 起点</a></li>
+    <li><a href="#p8">阶段 5：进行关键分析 — 假设验证</a></li>
+    <li><a href="#p9">阶段 6：综合分析构建论证</a></li>
+    <li><a href="#p10">阶段 7：制定纠正与预防措施</a></li>
+    <li><a href="#p11">阶段 8：汇总资料 — One Page 报告</a></li>
+    <li><a href="#p12">阶段 9：跟踪验证与闭环</a></li>
+    <li><a href="#p13">贯穿全程的思维模式</a></li>
+    <li><a href="#p14">工具速查表</a></li>
+    <li><a href="#p15">常见失败模式与避坑指南</a></li>
+    <li><a href="#p16">完整 Checklist</a></li>
+  </ol>
+</div>
+
+<!-- 1 概念 -->
+<div class="section" id="p1">
+  <h2>① RCCA 是什么 · 为什么 · 什么时候用</h2>
+
+  <h3>1.1 概念区分</h3>
+  <table>
+    <thead><tr><th>缩写</th><th>全称</th><th>含义</th></tr></thead>
+    <tbody>
+      <tr><td><strong>RCA</strong></td><td>Root Cause Analysis</td><td>根本原因分析 — 找到问题真正的源头</td></tr>
+      <tr><td><strong>RCCA</strong></td><td>Root Cause Corrective Action</td><td>根本原因纠正行动 — 找到根因 <strong>+</strong> 制定纠正与预防措施 <strong>+</strong> 闭环验证</td></tr>
+    </tbody>
+  </table>
+  <p>RCCA 比 RCA 多了"纠正措施 + 实施 + 跟踪"的闭环，是一种从问题入手、找到根因、制定措施、防止再发的<strong>过程方法</strong>。</p>
+
+  <h3>1.2 为什么要做 RCCA</h3>
+  <div class="callout info">
+    <strong>核心目标：</strong>高效解决复杂、重要、跨部门的问题，并杜绝重复发生。
+  </div>
+  <ul>
+    <li>消除症状只让问题更难监控；消除直接原因只能短期缓解；唯有消除<strong>根原因</strong>才能彻底解决。</li>
+    <li>RCCA 是组织持续改进的核心活动，是一种"打硬仗"式的问题解决态度。</li>
+  </ul>
+
+  <h3>1.3 哪些问题需要走 RCCA</h3>
+  <table>
+    <thead><tr><th>类型</th><th>处理方式</th></tr></thead>
+    <tbody>
+      <tr><td>单模块、原因明显的简单问题</td><td>直接修复，不必走完整 RCCA</td></tr>
+      <tr><td><strong>重要 / 系统集成 / 跨部门 / 长期或频繁出现 / 无法直接判断原因</strong></td><td>✅ 走 RCCA</td></tr>
+      <tr><td>问题会自然消失或解决成本远大于收益</td><td>不必费周折</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1.4 常见的分析失败原因（避坑清单）</h3>
+  <div class="block trap">
+    <span class="block-label">⚠️ 常见失败</span>
+    <ul>
+      <li>信息收集不全面 / 问题定义不准确</li>
+      <li>停在表面原因，没继续深挖</li>
+      <li>视野狭隘，只关注单方面原因</li>
+      <li>过早下结论，先入为主</li>
+      <li>受经验影响沿用旧方案</li>
+      <li>受参与人员知识范畴限制，没有正确的验证方向</li>
+      <li>过多关注问题责任人指定，而非根因本身</li>
+      <li>没有验证成功的方法 — 措施有效性未被证实</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 2 流程总览 -->
+<div class="section" id="p2">
+  <h2>② 10 阶段流程总览</h2>
+  <p>本框架划分为 <strong>10 个阶段</strong>。前 9 步聚焦"从问题到方案"，第 10 步聚焦"从方案到闭环"。</p>
+
+  <div class="flow">
+    <div class="flow-step"><div class="num">0</div><div class="title">立项准备</div><div class="desc">判断是否需要 RCCA、成立分析小组</div><div class="out">📤 团队矩阵</div></div>
+    <div class="flow-step"><div class="num">1</div><div class="title">定义问题</div><div class="desc">4W1H1S + HTDQ + 框架四原则</div><div class="out">📤 问题陈述</div></div>
+    <div class="flow-step"><div class="num">2</div><div class="title">分解问题</div><div class="desc">逆向 5Why + 正向人机物法环测</div><div class="out">📤 因素清单</div></div>
+    <div class="flow-step"><div class="num">3</div><div class="title">去除非关键</div><div class="desc">28 法则 / 帕累托收敛</div><div class="out">📤 等级清单</div></div>
+    <div class="flow-step"><div class="num">4</div><div class="title">制定计划</div><div class="desc">PDCA 起点，分配责任人和截止时间</div><div class="out">📤 验证计划</div></div>
+    <div class="flow-step"><div class="num">5</div><div class="title">关键分析</div><div class="desc">基于事实验证假设</div><div class="out">📤 因果证据</div></div>
+    <div class="flow-step"><div class="num">6</div><div class="title">综合论证</div><div class="desc">金字塔结构整合根因</div><div class="out">📤 根因结论</div></div>
+    <div class="flow-step"><div class="num">7</div><div class="title">纠正措施</div><div class="desc">Short-term 临时 + Long-term 预防</div><div class="out">📤 措施清单</div></div>
+    <div class="flow-step"><div class="num">8</div><div class="title">汇报输出</div><div class="desc">One-page 信息同步</div><div class="out">📤 单页报告</div></div>
+    <div class="flow-step"><div class="num">9</div><div class="title">跟踪闭环</div><div class="desc">关闭 Jira + 复盘 + 文档化</div><div class="out">📤 经验沉淀</div></div>
+  </div>
+
+  <div class="callout tip">
+    💡 <strong>迭代提示：</strong>RCCA 不是一次性的瀑布流程。第 5 步关键分析往往会发现新假设，需要回到第 2-4 步补充验证，多轮 PDCA 循环直到收敛到真正的根因。
+  </div>
+</div>
+
+
+<!-- 阶段 0 立项准备 -->
+<div class="phase-card p0" id="p3">
+  <div class="phase-header">
+    <div class="phase-num">0</div>
+    <div class="phase-title">
+      <h3>立项准备 — 成立分析小组</h3>
+      <div class="meta">⏱ 半天 · 👥 1 人发起 → 全员到位</div>
+    </div>
+  </div>
+
+  <div class="block action">
+    <span class="block-label">🎯 行动</span>
+    <ol>
+      <li>判断问题是否符合 RCCA 启动条件（重要 + 复杂 + 跨部门 + 无法直接判断）。</li>
+      <li>申请管理层授权 — 没有授权很难推动跨部门执行。</li>
+      <li>确定组织者（一般是问题最先发现方或质量负责人）。</li>
+      <li>按业务模块组建小组，明确每位成员的职责和主管。</li>
+      <li>确定首次会议时间，建立沟通机制（群组、文档库、Jira tag）。</li>
+    </ol>
+  </div>
+
+  <div class="block tool">
+    <span class="block-label">🧰 工具</span>
+    <p>团队矩阵表 + 利益相关者分析（区分核心利益相关者与一般利益相关者）。</p>
+  </div>
+
+  <div class="block template">
+    <span class="block-label">📋 模板：分析小组矩阵</span>
+    <table>
+      <thead><tr><th>角色</th><th>负责人</th><th>主管</th><th>主要职责</th></tr></thead>
+      <tbody>
+        <tr><td>组织者 / Owner</td><td></td><td></td><td>整体推进、会议主持、对结论负责</td></tr>
+        <tr><td>测试</td><td></td><td></td><td>问题复现、对比测试、数据收集</td></tr>
+        <tr><td>硬件</td><td></td><td></td><td>电子元器件、PCBA、整机硬件分析</td></tr>
+        <tr><td>结构</td><td></td><td></td><td>结构件、装配、外观、材料分析</td></tr>
+        <tr><td>软件（上位机）</td><td></td><td></td><td>App、固件交互、UI 逻辑</td></tr>
+        <tr><td>软件（下位机）</td><td></td><td></td><td>MCU、控制算法、底层驱动</td></tr>
+        <tr><td>生产现场</td><td></td><td></td><td>工艺、来料、产线 ATE/ICT 数据</td></tr>
+        <tr><td>供应商接口（按需）</td><td></td><td></td><td>对接外部供应商问题反馈</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="block trap">
+    <span class="block-label">⚠️ 常见陷阱</span>
+    <ul>
+      <li>组员只挂名，没有真正投入时间 → 提前与主管确认工时承诺。</li>
+      <li>遗漏关键模块（如供应商、生产）→ 用流程图或鱼骨图先扫一遍涉及的"人机物法环"。</li>
+      <li>没有授权 → 小组无权调动资源，会议成空谈。</li>
+    </ul>
+  </div>
+</div>
+
+
+
+<!-- 阶段 1 定义问题 -->
+<div class="phase-card p1" id="p4">
+  <div class="phase-header">
+    <div class="phase-num">1</div>
+    <div class="phase-title">
+      <h3>定义问题 — 4W1H1S + HTDQ + 框架四原则</h3>
+      <div class="meta">⏱ 1~2 天 · 这一步往往决定整个 RCCA 的成败</div>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    🎯 <strong>关键认知：</strong>"问题定义不准确"是 RCCA 失败的头号原因。问题陈述模糊，后续所有工作都会偏离方向。这一步要花充足时间，宁可慢，不要错。
+  </div>
+
+  <div class="block action">
+    <span class="block-label">🎯 行动</span>
+    <ol>
+      <li>用 <strong>4W1H1S</strong> 模板填充问题事实，事实必须可追溯（Jira ID、日志、复现视频等）。</li>
+      <li>用 <strong>HTDQ 框架</strong>（英雄-宝藏-龙-任务）把问题转化为一个"如何"开头的开放式任务。</li>
+      <li>用 <strong>框架完善四原则</strong>（背包、兔子、多利、华生）逐一检查问题陈述是否到位。</li>
+      <li>把问题陈述发给非小组成员看一眼，确认陌生人也能理解。</li>
+    </ol>
+  </div>
+
+  <div class="block tool">
+    <span class="block-label">🧰 工具：4W1H1S 问题陈述模板</span>
+    <table>
+      <thead><tr><th>维度</th><th>填写要点</th></tr></thead>
+      <tbody>
+        <tr><td><strong>What is it?</strong></td><td>关联 Jira / Bug ID；客观描述现象、发生前后过程、环境、操作。</td></tr>
+        <tr><td><strong>How is it manifesting?</strong></td><td>如何复现？是否重复发生？有没有规律（与温度、时间、批次相关）？</td></tr>
+        <tr><td><strong>Where are we seeing it?</strong></td><td>地点 + 发现人（FWQA / 量产线 / 客户端）。</td></tr>
+        <tr><td><strong>When are we seeing it?</strong></td><td>首次发生时间，频率，是否与某次变更相关。</td></tr>
+        <tr><td><strong>What is the consumer impact?</strong></td><td>用户感知（场景化描述），影响比例。</td></tr>
+        <tr><td><strong>Impact Scope</strong></td><td>影响哪些项目 / 批次 / 机型，是否波及量产、其他产品线。</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="block tool">
+    <span class="block-label">🧰 工具：HTDQ 框架</span>
+    <table>
+      <thead><tr><th>要素</th><th>定义</th><th>示例（机器人回充）</th></tr></thead>
+      <tbody>
+        <tr><td>🦸 英雄 Hero</td><td>试图解决问题的人 / 团队</td><td>FW QA + 硬件团队</td></tr>
+        <tr><td>💎 宝藏 Treasure</td><td>想要达成的目标</td><td>所有机器都能稳定回充并满电</td></tr>
+        <tr><td>🐉 龙 Dragon</td><td>阻碍达成目标的核心障碍</td><td>2/3 EB1 样机 UI 一直显示充电中、实际未满</td></tr>
+        <tr><td>🎯 任务 Quest</td><td>用"如何…"开头的开放式问题</td><td>如何让 360 Fanjet EB1 稳定满电？</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="block tool">
+    <span class="block-label">🧰 工具：框架完善四原则</span>
+    <ul>
+      <li>🎒 <strong>背包原则</strong>：只保留必须的内容，去掉冗余的环境描述。</li>
+      <li>🐰 <strong>兔子原则</strong>：把所有相关信息都装进框架，不要遗漏关键变量（变更、批次、地区）。</li>
+      <li>🐑 <strong>多利原则</strong>：复刻语言一致 — 同一概念全文用相同术语，不用同义词。</li>
+      <li>🔍 <strong>华生原则</strong>：列出所有假设并标注，不要把假设当事实。</li>
+    </ul>
+  </div>
+
+  <div class="block output">
+    <span class="block-label">📤 输出</span>
+    <p>一份<strong>全面、准确、简洁、清晰</strong>的问题陈述（建议 1 页内）。包括：4W1H1S 表格 + HTDQ 一句话任务 + 已知假设清单。</p>
+  </div>
+
+  <div class="block trap">
+    <span class="block-label">⚠️ 常见陷阱</span>
+    <ul>
+      <li>把"问题"写成"方案"（"软件没有上报满电信号"是猜测，不是事实）。</li>
+      <li>把"症状"当成"原因"（UI 一直显示充电中是症状，不是原因）。</li>
+      <li>问题范围过宽（"机器人不工作"）或过窄（只描述某一台机器）。</li>
+    </ul>
+  </div>
+</div>
+
+
+
+<!-- 阶段 2 分解问题 -->
+<div class="phase-card p2" id="p5">
+  <div class="phase-header">
+    <div class="phase-num">2</div>
+    <div class="phase-title">
+      <h3>分解问题 — 双向发散</h3>
+      <div class="meta">⏱ 1~2 次 1.5h 会议 · 原则：发散思维，宁滥勿缺</div>
+    </div>
+  </div>
+
+  <div class="callout info">
+    💡 <strong>核心原则：</strong>这一阶段就是<strong>发散</strong> — 想得越多越好，不评判可行性。后续阶段会有专门的收敛步骤。原则：所有问题都是由"变更"带来的。
+  </div>
+
+  <div class="block action">
+    <span class="block-label">🎯 行动</span>
+    <ol>
+      <li><strong>逆向分析（结果 → 原因）</strong>：从问题表现出发，多问几个 Why，列出所有可能导致此结果的因素。</li>
+      <li><strong>正向分析（变更 → 结果）</strong>：列出问题机器相对历史正常机器有哪些差异和变更（按"人机物法环测"6 维度）。</li>
+      <li>把两条路径的因素汇总到一张大列表。</li>
+    </ol>
+  </div>
+
+  <div class="block tool">
+    <span class="block-label">🧰 逆向分析工具组合</span>
+    <div class="tool-grid">
+      <div class="tool-card"><div class="tn">🐟 鱼骨图（因果图）</div><div class="td">围绕问题画 6 大类骨架，每类下面再分支。最常用。</div></div>
+      <div class="tool-card"><div class="tn">❓ 5 Whys</div><div class="td">连续追问 5 次为什么，逼向深层原因。适合简单问题。</div></div>
+      <div class="tool-card"><div class="tn">🌳 故障树分析（FTA）</div><div class="td">用 AND/OR 逻辑门分解。适合产品质量、安全相关问题。</div></div>
+      <div class="tool-card"><div class="tn">🧠 头脑风暴 / 书面头脑风暴</div><div class="td">团队发散，书面版可保证匿名平等参与。</div></div>
+      <div class="tool-card"><div class="tn">📊 流程图（Flowchart）</div><div class="td">画出业务/工作过程，定位问题发生在哪个环节。</div></div>
+    </div>
+  </div>
+
+  <div class="block tool">
+    <span class="block-label">🧰 正向分析：人机物法环测 6M1E</span>
+    <table>
+      <thead><tr><th>维度</th><th>检查范围</th></tr></thead>
+      <tbody>
+        <tr><td><strong>人 Man</strong></td><td>操作者、检验员、工艺员的身体状况、技能水平、工作责任心</td></tr>
+        <tr><td><strong>机 Machine</strong></td><td>设备、工具、夹具：磨损、精度、校准状态</td></tr>
+        <tr><td><strong>物 Material</strong></td><td>来料、元器件、原材料的批次、规格、供应商变更</td></tr>
+        <tr><td><strong>法 Method</strong></td><td>工艺、操作方法、动作速度、安装次序、SOP</td></tr>
+        <tr><td><strong>环 Environment</strong></td><td>照明、噪声、振动、温度、湿度、ESD</td></tr>
+        <tr><td><strong>测 Measurement</strong></td><td>检验工具、测试方法、ATE/ICT 覆盖度</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:8px;">💡 <strong>实战技巧：</strong>对每个维度问"<strong>近期有什么变更</strong>？" — 新供应商、新设计、新软件版本、新人员、新工艺都是高嫌疑因素。</p>
+  </div>
+
+  <div class="block template">
+    <span class="block-label">📋 模板：双向因素清单</span>
+<pre><code>逆向（哪些原因可能带来这个问题）：
+- 结构 1：材料透光率
+- 结构 2：尺寸不匹配
+- 电子 1：元器件 IR 灵敏度
+- 软件 1：回充速度
+- ...
+
+正向（这次发现问题的机器有哪些差异/变更）：
+- 结构 1：P 阶段是手板件
+- 结构 2：dock 新设计改变角度
+- 结构 3：更换边刷、滚刷电机
+- 电子 1：新设计的 PCBA
+- 电子 2：新的 IR 供应商
+- 电子 3：新的电池
+- 软件 1：修改了地图美化逻辑
+- ...</code></pre>
+  </div>
+
+  <div class="block output">
+    <span class="block-label">📤 输出</span>
+    <p>一份<strong>结构化分解的影响因素清单</strong>，覆盖逆向 + 正向两条路径。</p>
+  </div>
+
+  <div class="block trap">
+    <span class="block-label">⚠️ 常见陷阱</span>
+    <ul>
+      <li><strong>视野狭隘</strong>：只让懂这一模块的人参与 → 会议必须邀请跨模块人员。</li>
+      <li><strong>过早评判</strong>：发散阶段说"这个不可能" → 主持人要明确禁止打断。</li>
+      <li><strong>忽视变更管理</strong>：没去查最近的 ECN、版本提交记录、来料变化。</li>
+    </ul>
+  </div>
+</div>
+
+
+
+<!-- 阶段 3 去除非关键 -->
+<div class="phase-card p3" id="p6">
+  <div class="phase-header">
+    <div class="phase-num">3</div>
+    <div class="phase-title">
+      <h3>去掉非关键问题 — 收敛聚焦</h3>
+      <div class="meta">⏱ 1 次 1h 会议 · 抓大放小，集中精力</div>
+    </div>
+  </div>
+
+  <div class="callout info">
+    💡 <strong>28 法则（帕累托原则）：</strong>20% 的因素往往导致 80% 的问题。这一步要识别这 20%，把精力集中过去。
+  </div>
+
+  <div class="block action">
+    <span class="block-label">🎯 行动</span>
+    <ol>
+      <li>把上一阶段的因素清单逐条评估：相关性、嫌疑等级、验证成本。</li>
+      <li>剔除明显无关或低概率因素（要写明剔除理由，避免后续翻案争论）。</li>
+      <li>给保留下来的因素打优先级（P1 / P2 / P3）。</li>
+      <li>使用<strong>是-非矩阵</strong>区分"问题在哪发生 vs 在哪不发生"，缩小范围。</li>
+    </ol>
+  </div>
+
+  <div class="block tool">
+    <span class="block-label">🧰 收敛工具</span>
+    <div class="tool-grid">
+      <div class="tool-card"><div class="tn">📊 帕累托图</div><div class="td">如有历史数据，直接画图找出贡献最大的因素</div></div>
+      <div class="tool-card"><div class="tn">✅ 是-非矩阵 (Is-Is Not)</div><div class="td">列出问题"在哪 / 何时 / 何种条件下出现"vs"不出现"，差异点就是嫌疑因素</div></div>
+      <div class="tool-card"><div class="tn">📋 矩阵图</div><div class="td">多个原因 × 多个标准的二维评估矩阵</div></div>
+      <div class="tool-card"><div class="tn">🗳️ 名义群组 / 配对比较</div><div class="td">团队投票排序，确保民主达成一致</div></div>
+      <div class="tool-card"><div class="tn">🕸️ 关系图</div><div class="td">复杂情况下识别因素间的相互关系，找出"驱动因素"</div></div>
+    </div>
+  </div>
+
+  <div class="block template">
+    <span class="block-label">📋 模板：等级清单</span>
+    <table>
+      <thead><tr><th>等级</th><th>差异/变更</th><th>具体因素</th><th>剔除/保留理由</th></tr></thead>
+      <tbody>
+        <tr><td>P1</td><td>结构 1（P 阶段手板件）</td><td>材料透光率</td><td>样机和量产料差异最大，嫌疑高</td></tr>
+        <tr><td>P1</td><td>电子 1（新设计 PCBA）</td><td>R2529 阻值</td><td>正好与充电检测电路相关</td></tr>
+        <tr><td>P2</td><td>结构 2（dock 新设计）</td><td>反射率</td><td>需要测量数据验证</td></tr>
+        <tr><td>P3</td><td>软件 2（回充速度）</td><td>降速逻辑</td><td>关联性较低，但易验证</td></tr>
+        <tr><td>—</td><td>结构 3（更换边刷）</td><td>—</td><td>剔除：与回充无关</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="block output">
+    <span class="block-label">📤 输出</span>
+    <p>带优先级的<strong>关键因素清单</strong>，剔除项有书面理由（防止后续翻案）。</p>
+  </div>
+
+  <div class="block trap">
+    <span class="block-label">⚠️ 常见陷阱</span>
+    <ul>
+      <li>剔除得太狠，过早收敛 → 至少保留 P3 备选，留余地。</li>
+      <li>剔除没有理由记录 → 一旦验证失败，会反复争论同一个因素。</li>
+      <li>权威主导，不让基层发言 → 用名义群组技术保证平等投票。</li>
+    </ul>
+  </div>
+</div>
+
+
+
+<!-- 阶段 4 制定工作计划 -->
+<div class="phase-card p4" id="p7">
+  <div class="phase-header">
+    <div class="phase-num">4</div>
+    <div class="phase-title">
+      <h3>制定工作计划 — PDCA 起点</h3>
+      <div class="meta">⏱ 0.5 天 · 每个假设都要有责任人 + 验证方式 + 截止时间</div>
+    </div>
+  </div>
+
+  <div class="callout info">
+    💡 <strong>核心思想：</strong>PDCA = Plan（计划）→ Do（执行）→ Check（检查）→ Act（处理）。这一步是 Plan，可能需要多轮 PDCA 循环才能收敛。
+  </div>
+
+  <div class="block action">
+    <span class="block-label">🎯 行动</span>
+    <ol>
+      <li>把每个保留因素拆成"待验证的假设"，用<strong>可证伪</strong>的语言描述。</li>
+      <li>为每个假设设计具体的验证方式（实验、对比测试、数据查询）。</li>
+      <li>分配责任人 + 完成时间 + 输出交付物。</li>
+      <li>提前约定下次会议时间，每次会议结束就开始倒计时。</li>
+    </ol>
+  </div>
+
+  <div class="block tool">
+    <span class="block-label">🧰 数据收集与分析工具</span>
+    <div class="tool-grid">
+      <div class="tool-card"><div class="tn">📥 抽样</div><div class="td">通过小样本推测总体（按批次、地区、机器型号分层）</div></div>
+      <div class="tool-card"><div class="tn">📋 检查表</div><div class="td">用预设表格系统化收集观测数据</div></div>
+      <div class="tool-card"><div class="tn">📈 柱状图 / 帕累托图</div><div class="td">识别数据模式或集中分布</div></div>
+      <div class="tool-card"><div class="tn">📊 散点图</div><div class="td">查看两个变量之间的相关性</div></div>
+      <div class="tool-card"><div class="tn">🗺️ 问题集中图</div><div class="td">在物理布局图上标记问题发生位置（如 PCB 板）</div></div>
+    </div>
+  </div>
+
+  <div class="block template">
+    <span class="block-label">📋 模板：验证工作计划</span>
+    <table>
+      <thead><tr><th>等级</th><th>差异/变更</th><th>因素</th><th>假设（可证伪）</th><th>验证方式</th><th>负责人</th><th>完成时间</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>结构 1</td><td>材料透光率</td><td>手板件透光率与量产件差异 &gt; 5% 导致回充识别失败</td><td>用分光仪测 5 个手板 vs 5 个量产件</td><td>张三</td><td>5/24</td></tr>
+        <tr><td>1</td><td>电子 1</td><td>R2529 阻值</td><td>R2529 实测值低于设计 20K±1% 导致 MCU 误判过压</td><td>拆 3 块问题板和 3 块正常板分别测阻</td><td>李四</td><td>5/26</td></tr>
+        <tr><td>2</td><td>结构 2</td><td>dock 反射率</td><td>新 dock 角度变化导致 IR 反射偏离 ±10°</td><td>用反射率测试治具对比新旧 dock</td><td>王五</td><td>5/28</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="block output">
+    <span class="block-label">📤 输出</span>
+    <p>带责任人和完成时间的<strong>验证工作计划</strong>，下次会议时间已预约。</p>
+  </div>
+
+  <div class="block trap">
+    <span class="block-label">⚠️ 常见陷阱</span>
+    <ul>
+      <li>假设写得太模糊（"R2529 不对"）→ 必须可证伪、可量化。</li>
+      <li>没有截止时间或时间太宽 → 一周原则：每个验证项不超过 5 个工作日。</li>
+      <li>责任人挂名不真做 → 责任人主管要在场签字承诺。</li>
+    </ul>
+  </div>
+</div>
+
+
+
+<!-- 阶段 5 关键分析 -->
+<div class="phase-card p5" id="p8">
+  <div class="phase-header">
+    <div class="phase-num">5</div>
+    <div class="phase-title">
+      <h3>进行关键分析 — 假设验证</h3>
+      <div class="meta">⏱ 1~3 周 · 假设为前提，事实为依据</div>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    🎯 <strong>核心准则：</strong>所有结论都要有<strong>事实证据</strong>支撑（数据、照片、日志、波形）。"凭经验"、"应该是"不是证据。
+  </div>
+
+  <div class="block action">
+    <span class="block-label">🎯 行动</span>
+    <ol>
+      <li>按计划执行验证实验，记录原始数据和过程。</li>
+      <li>每个假设输出明确的"成立 / 不成立 / 部分成立"结论 + 证据链。</li>
+      <li>不成立的假设也要保留记录（防止后续重复）。</li>
+      <li>如有意外发现新的可疑因素 → 回到阶段 2-3-4 补充验证（PDCA 第 2 轮）。</li>
+      <li>每周开 30 分钟同步会议，刷新进度看板。</li>
+    </ol>
+  </div>
+
+  <div class="block tool">
+    <span class="block-label">🧰 实战验证套路</span>
+    <ul>
+      <li><strong>对比实验</strong>：好品 vs 坏品，新批次 vs 老批次，用同一条件。</li>
+      <li><strong>变量隔离</strong>：一次只改一个变量，避免混杂。</li>
+      <li><strong>复现验证</strong>：能稳定复现 = 接近根因；偶现 = 还要继续找。</li>
+      <li><strong>逆向验证</strong>：把怀疑的根因恢复成正常状态，问题是否消失。</li>
+      <li><strong>批量数据回查</strong>：用 ATE / BDP / 测试日志在历史数据中验证假设。</li>
+    </ul>
+  </div>
+
+  <div class="block template">
+    <span class="block-label">📋 模板：验证结果记录</span>
+    <table>
+      <thead><tr><th>因素</th><th>验证方式</th><th>结果</th><th>证据</th><th>结论</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>R2529 阻值</td>
+          <td>3 块问题板 vs 3 块正常板分别测阻（板上 + 拆下）</td>
+          <td>问题板拆下测得 19.6K，设计 20K±1%（即 19.8K~20.2K）</td>
+          <td>万用表实测照片 + 数据表</td>
+          <td><strong style="color:#fca5a5;">✅ 成立</strong> — 阻值偏低导致 MCU 误判过压</td>
+        </tr>
+        <tr>
+          <td>材料透光率</td>
+          <td>5 手板 vs 5 量产件分光仪测试</td>
+          <td>差异 &lt; 1%，在公差内</td>
+          <td>分光仪报告</td>
+          <td><strong style="color:#86efac;">❌ 不成立</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="block output">
+    <span class="block-label">📤 输出</span>
+    <p>每个假设的<strong>验证结果 + 可证实的因果关系链</strong>。</p>
+  </div>
+
+  <div class="block trap">
+    <span class="block-label">⚠️ 常见陷阱</span>
+    <ul>
+      <li><strong>样本太少</strong>：3 块板可能不够，必要时扩大到 10-30 块。</li>
+      <li><strong>停在第一层原因</strong>：找到 R2529 阻值不对就结束 → 还要问"为什么阻值会不对？"（混料？测量精度？质量管控？）</li>
+      <li><strong>把相关当因果</strong>：散点图相关不等于因果，要做隔离实验。</li>
+      <li><strong>验证完不更新假设清单</strong>：要把已证伪的因素剔除，把新发现的加进去。</li>
+    </ul>
+  </div>
+</div>
+
+
+
+<!-- 阶段 6 综合论证 -->
+<div class="phase-card p6" id="p9">
+  <div class="phase-header">
+    <div class="phase-num">6</div>
+    <div class="phase-title">
+      <h3>综合分析结果 — 构建论证</h3>
+      <div class="meta">⏱ 0.5~1 天 · 用金字塔结构表达根因</div>
+    </div>
+  </div>
+
+  <div class="block action">
+    <span class="block-label">🎯 行动</span>
+    <ol>
+      <li>把所有验证结果整合，画出因果链：直接原因 → 中间原因 → 根本原因。</li>
+      <li>用<strong>金字塔结构</strong>组织论据：结论先行，论据相互支撑。</li>
+      <li>用"5 Whys"再深挖一次，确保已经触底（达到组织有能力消除的层级）。</li>
+      <li>把根因结论翻译成"如果消除 X，问题不再发生"的可证伪命题。</li>
+    </ol>
+  </div>
+
+  <div class="block tool">
+    <span class="block-label">🧰 金字塔结构示例</span>
+<pre><code>【顶层结论】机器人无法满电的根本原因：
+  PCBA 上 R2529 电阻值低于设计规格，导致 MCU 误判电池过压
+
+【第一层论据】
+  ├─ 直接原因：R2529 实测 19.6K，设计 20K±1%
+  │   └─ 证据：3 块问题板拆装前后测量数据
+  ├─ 中间原因：来料阻值偏离规格但未被现有 ATE/ICT 测量精度检出
+  │   └─ 证据：FAI 报告标注 R2529 正常，但中途换料未被拦截
+  └─ 根本原因：质量管控流程对小阻值偏差的灵敏度不足
+      └─ 证据：测量精度 vs 设计公差对比分析
+
+【第二层论据 — 验证不成立的假设（剔除项）】
+  ❌ 材料透光率（差异 &lt; 1%）
+  ❌ dock 反射率（在规格内）
+  ❌ 边刷/滚刷电机变更（与回充无关）
+  ...</code></pre>
+  </div>
+
+  <div class="block tool">
+    <span class="block-label">🧰 5 Whys 深挖示范</span>
+<pre><code>问：为什么机器无法满电？
+答：因为 MCU 误判电池过压，触发保护停止充电。
+问：为什么 MCU 误判过压？
+答：因为采集到的充电电压偏小。
+问：为什么采集电压偏小？
+答：因为 R2529 阻值（19.6K）低于设计（20K）。
+问：为什么 R2529 阻值会偏低？
+答：因为中途换了不同批次的电阻，与设计规格 20K±1% 不符。
+问：为什么换料没被发现？
+答：因为现有 ATE/ICT 的测量精度不足以拦截这种偏差。  ← 这才是组织能消除的根因</code></pre>
+  </div>
+
+  <div class="block output">
+    <span class="block-label">📤 输出</span>
+    <p>清晰、简明、结构化的<strong>根本原因结论 + 论据链</strong>（一页内可呈现）。</p>
+  </div>
+
+  <div class="block trap">
+    <span class="block-label">⚠️ 常见陷阱</span>
+    <ul>
+      <li>停在直接原因，没追到根因（"R2529 阻值不对"是直接原因，"质量管控不足"才是根因）。</li>
+      <li>追得太深超出组织能消除的层级（追到"供应商 CEO 重视不够"就脱离实际了）。</li>
+      <li>论据散乱无层级，听众抓不住重点 → 必须用金字塔结构整理。</li>
+    </ul>
+  </div>
+</div>
+
+
+
+<!-- 阶段 7 纠正措施 -->
+<div class="phase-card p7" id="p10">
+  <div class="phase-header">
+    <div class="phase-num">7</div>
+    <div class="phase-title">
+      <h3>制定纠正与预防措施</h3>
+      <div class="meta">⏱ 1~2 天 · Short term 救火 + Long term 治本</div>
+    </div>
+  </div>
+
+  <div class="callout info">
+    💡 措施分两类：<strong>Short term</strong>（针对直接原因或已发生影响的临时纠正）、<strong>Long term</strong>（针对根因的预防措施，避免重复发生）。两者都要给出。
+  </div>
+
+  <div class="block action">
+    <span class="block-label">🎯 行动</span>
+    <ol>
+      <li>判断措施由<strong>本团队制定</strong>还是<strong>其他部门负责</strong>（如 SQE / 供应商 / 设计部门）。</li>
+      <li>列出 Short term 临时措施：拦截已影响范围、紧急修复。</li>
+      <li>列出 Long term 预防措施：改流程、改设计、加测试覆盖。</li>
+      <li>用<strong>加权标准评估法</strong>从多个候选方案中选优（成本、时间、有效性、风险）。</li>
+      <li>用<strong>力场分析</strong>识别推动和阻碍因素，提前应对阻碍。</li>
+      <li>用<strong>六项思考帽</strong>从不同视角检验方案完整性。</li>
+    </ol>
+  </div>
+
+  <div class="block tool">
+    <span class="block-label">🧰 工具组合</span>
+    <div class="tool-grid">
+      <div class="tool-card"><div class="tn">⚖️ 加权标准评估</div><div class="td">为成本/时间/有效性/风险分配权重，对每个方案打分</div></div>
+      <div class="tool-card"><div class="tn">⚡ 力场分析</div><div class="td">列出推动力 vs 阻力，量化强弱，制定削弱阻力策略</div></div>
+      <div class="tool-card"><div class="tn">🎩 六项思考帽</div><div class="td">事实/情感/批判/乐观/创造/管控 6 个角度审视</div></div>
+      <div class="tool-card"><div class="tn">🌳 树图</div><div class="td">把方案分解为可执行任务的层级结构</div></div>
+      <div class="tool-card"><div class="tn">⚙️ TRIZ / SIT</div><div class="td">面对工程矛盾时的创新发明原理</div></div>
+    </div>
+  </div>
+
+  <div class="block template">
+    <span class="block-label">📋 模板：纠正与预防措施清单</span>
+    <table>
+      <thead><tr><th>类别</th><th>措施</th><th>负责人</th><th>截止</th><th>验收标准</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong style="color:#fca5a5;">Short term</strong></td>
+          <td>对 12 块已使用问题电阻批次的 PCBA 进行筛查</td>
+          <td>Sen WANG</td>
+          <td>5/24</td>
+          <td>所有问题板被识别并隔离，问题阻值率统计</td>
+        </tr>
+        <tr>
+          <td><strong style="color:#fca5a5;">Short term</strong></td>
+          <td>用 BDP 命令对比满电电池的采集电压，扩大筛查到 KY WD/Fanjet 的更多 PCBA</td>
+          <td>Even Xie / Sam Gao</td>
+          <td>5/26</td>
+          <td>覆盖 100 块板的扫描结果</td>
+        </tr>
+        <tr>
+          <td><strong style="color:#86efac;">Long term</strong></td>
+          <td>升级 ATE / BDP 治具：标准电源模拟满电场景，让 SW 检测发现该故障</td>
+          <td>Even Xie</td>
+          <td>6/30</td>
+          <td>新 ATE 能 100% 拦截类似阻值偏差</td>
+        </tr>
+        <tr>
+          <td><strong style="color:#86efac;">Long term</strong></td>
+          <td>Nav 板统一改用 20K±1% 同规格电阻，避免混料</td>
+          <td>Gaojie Shan</td>
+          <td>下一版改板</td>
+          <td>BOM 更新通过审核</td>
+        </tr>
+        <tr>
+          <td><strong style="color:#86efac;">Long term</strong></td>
+          <td>评估其他位置电阻是否能纳入 ICT 测试覆盖</td>
+          <td>Even Xie</td>
+          <td>6/15</td>
+          <td>覆盖率提升报告</td>
+        </tr>
+        <tr>
+          <td><strong style="color:#86efac;">Long term</strong></td>
+          <td>要求 KY 改善质量管控（来料检验 + 换料管控）</td>
+          <td>Gaojie Shan / SQE</td>
+          <td>6/30</td>
+          <td>SQE 现场审核报告</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="block output">
+    <span class="block-label">📤 输出</span>
+    <p>分类清晰、责任到人、有验收标准的<strong>措施清单</strong>。如果措施由其他部门给出，则只输出根因结论给到对方部门，进入下一阶段。</p>
+  </div>
+
+  <div class="block trap">
+    <span class="block-label">⚠️ 常见陷阱</span>
+    <ul>
+      <li>只有 Short term 没有 Long term → 短期问题解决了但根因还在，下次同样问题再来一次。</li>
+      <li>措施虚化（"加强培训"、"提高重视"）→ 必须可观测、可验收。</li>
+      <li>没有验收标准 → 跟踪时无法判断是否真的有效。</li>
+      <li>跨部门措施没和对方负责人确认 → 形成空头支票。</li>
+    </ul>
+  </div>
+</div>
+
+
+
+<!-- 阶段 8 汇报 One Page -->
+<div class="phase-card p8" id="p11">
+  <div class="phase-header">
+    <div class="phase-num">8</div>
+    <div class="phase-title">
+      <h3>汇总资料 — One Page 报告</h3>
+      <div class="meta">⏱ 0.5 天 · 一页讲清楚事件、根因、措施</div>
+    </div>
+  </div>
+
+  <div class="callout info">
+    💡 <strong>目标：</strong>让没参与分析的领导/同事在 1 分钟内看懂"出了什么问题、为什么、怎么改"。
+  </div>
+
+  <div class="block tool">
+    <span class="block-label">🧰 One Page 报告结构</span>
+<pre><code>【标题区】Robotics 2026 | xxxxx 一句话摘要
+
+【Key Takeaway】 2-3 行核心结论
+- 根因一句话总结
+- 影响范围 / 紧急程度
+
+【Describe the Issue（4W1H1S）】
+- What is it?
+- How is it manifesting?
+- Where are we seeing it?
+- When are we seeing it?
+- What is the consumer impact?
+- Impact Scope
+
+【What is the root cause?】
+根因结论 + 关键证据 + 因果链（建议配图）
+
+【Short term】
+- 措施 1（负责人 / 截止时间）
+- 措施 2（负责人 / 截止时间）
+
+【Long term】
+- 措施 1（负责人 / 截止时间）
+- 措施 2（负责人 / 截止时间）
+
+【Notes / 备注】（可选）</code></pre>
+  </div>
+
+  <div class="block tool">
+    <span class="block-label">🧰 表达原则</span>
+    <ul>
+      <li>结论先行：标题一句话讲清根因。</li>
+      <li>用图代替文字：因果链、对比数据用可视化。</li>
+      <li>少术语多场景：写给非专业人员能看懂。</li>
+      <li>关键数据要附原始证据链接（Jira、Confluence、文件路径）。</li>
+    </ul>
+  </div>
+
+  <div class="block output">
+    <span class="block-label">📤 输出</span>
+    <p>One Page 报告（PDF 或 PPT 单页），存档至 Confluence / 内部 Wiki。</p>
+  </div>
+
+  <div class="block trap">
+    <span class="block-label">⚠️ 常见陷阱</span>
+    <ul>
+      <li>报告写成长文，超过 1 页 → 强制单页约束。</li>
+      <li>只讲技术细节不讲影响 → 要让管理层看到业务影响。</li>
+      <li>没有附证据链接 → 后期复盘找不到原始资料。</li>
+    </ul>
+  </div>
+</div>
+
+
+
+<!-- 阶段 9 跟踪闭环 -->
+<div class="phase-card p9" id="p12">
+  <div class="phase-header">
+    <div class="phase-num">9</div>
+    <div class="phase-title">
+      <h3>跟踪验证与闭环</h3>
+      <div class="meta">⏱ 持续监控 1~3 个月 · 关闭 / 重启</div>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    🎯 <strong>核心准则：</strong>没有"验证有效"的环节，RCCA 就不算完成。每条措施都要被检查是否真的解决了问题。
+  </div>
+
+  <div class="block action">
+    <span class="block-label">🎯 行动</span>
+    <ol>
+      <li>按措施清单逐项跟踪完成情况，更新到 Jira / Confluence。</li>
+      <li>对每条 Long term 措施做<strong>有效性验证</strong>：在新批次/新版本上确认问题不再发生。</li>
+      <li>如果问题再次出现：<strong>重启 RCCA</strong>，回到阶段 1 重新审视问题定义。</li>
+      <li>关闭 Jira：所有措施完成 + 至少一个监控周期无再发。</li>
+      <li>做<strong>过程复盘</strong>：分析这次 RCCA 哪里高效、哪里低效，沉淀经验。</li>
+      <li>归档：Wiki 文档 + 案例库 + 模板更新。</li>
+    </ol>
+  </div>
+
+  <div class="block tool">
+    <span class="block-label">🧰 跟踪工具</span>
+    <ul>
+      <li>📋 措施跟踪表（Jira Epic / Confluence 页面 / Excel）</li>
+      <li>📊 监控仪表盘：用同一类问题的发生率 / 失效率作为有效性指标</li>
+      <li>📝 复盘会议（Retrospective）：1 小时，讨论"做得好 / 做得不好 / 下次改进"</li>
+      <li>📚 经验库：把根因模式抽象成"问题模板"，下次类似问题直接套用</li>
+    </ul>
+  </div>
+
+  <div class="block template">
+    <span class="block-label">📋 模板：闭环检查清单</span>
+    <table>
+      <thead><tr><th>项</th><th>状态</th></tr></thead>
+      <tbody>
+        <tr><td>所有 Short term 措施已完成</td><td>☐</td></tr>
+        <tr><td>所有 Long term 措施已完成或有明确节点</td><td>☐</td></tr>
+        <tr><td>对应 Jira/Bug 已关闭</td><td>☐</td></tr>
+        <tr><td>有效性验证：新批次 / 新版本无同类问题</td><td>☐</td></tr>
+        <tr><td>One Page 报告已归档</td><td>☐</td></tr>
+        <tr><td>过程复盘会议已召开</td><td>☐</td></tr>
+        <tr><td>经验沉淀进入案例库 / 模板</td><td>☐</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="block output">
+    <span class="block-label">📤 输出</span>
+    <p>关闭的 Jira + Wiki 归档 + 经验沉淀。</p>
+  </div>
+
+  <div class="block trap">
+    <span class="block-label">⚠️ 常见陷阱</span>
+    <ul>
+      <li>"措施做完就完事"，没有验证有效 → 下次同样问题还会复发。</li>
+      <li>没有复盘 → 同样的 RCCA 错误每次都犯。</li>
+      <li>不更新模板和案例库 → 组织能力没有积累。</li>
+    </ul>
+  </div>
+</div>
+
+
+
+<!-- 贯穿全程的思维模式 -->
+<div class="section" id="p13">
+  <h2>🧭 贯穿全程的思维模式</h2>
+  <p>RCCA 不只是流程，更是一组思维习惯。以下 6 项思维方式贯穿全部 10 个阶段。</p>
+
+  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap:14px; margin-top:16px;">
+    <div class="block">
+      <h4 style="color:#93c5fd;">🐢 第二系统思维（慢思考）</h4>
+      <p>对抗本能反应，用证据驱动决策。"听起来合理"不等于"真的对"。永远问：我有什么证据？</p>
+    </div>
+    <div class="block">
+      <h4 style="color:#c4b5fd;">🎲 概率思维</h4>
+      <p>不追求 100% 确定，承认不确定性。用"嫌疑度"而非"是/否"评估每个假设。</p>
+    </div>
+    <div class="block">
+      <h4 style="color:#f9a8d4;">🔄 迭代精神</h4>
+      <p>把每个分析当成一次实验，欢迎被推翻。多轮 PDCA 比一次完美更可靠。</p>
+    </div>
+    <div class="block">
+      <h4 style="color:#fcd34d;">🤝 团队协作</h4>
+      <p>一人盲点多。鼓励争论但不对人，营造信赖、开放、诚实的氛围。</p>
+    </div>
+    <div class="block">
+      <h4 style="color:#6ee7b7;">📊 证据驱动</h4>
+      <p>所有结论都有数据、日志、照片支撑。"以前类似问题是 X"不是证据，是经验偏见。</p>
+    </div>
+    <div class="block">
+      <h4 style="color:#fca5a5;">🛡️ 预防优于治疗</h4>
+      <p>FMEA / FMECA / DRBFM 提前识别风险。每次 RCCA 都把根因变成下一次的预防点。</p>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- 工具速查表 -->
+<div class="section" id="p14">
+  <h2>🧰 工具速查表（按阶段）</h2>
+  <table>
+    <thead>
+      <tr><th>阶段</th><th>核心工具</th><th>主要用途</th></tr>
+    </thead>
+    <tbody>
+      <tr><td rowspan="3"><strong>定义问题</strong></td><td>4W1H1S</td><td>结构化描述问题事实</td></tr>
+      <tr><td>HTDQ（英雄-宝藏-龙-任务）</td><td>把问题转化为开放式任务</td></tr>
+      <tr><td>框架四原则（背包/兔子/多利/华生）</td><td>检查问题陈述质量</td></tr>
+
+      <tr><td rowspan="5"><strong>分解问题（发散）</strong></td><td>鱼骨图（因果图）</td><td>多维度分解可能原因</td></tr>
+      <tr><td>5 Whys</td><td>追问深层原因</td></tr>
+      <tr><td>故障树分析（FTA）</td><td>用 AND/OR 逻辑分解</td></tr>
+      <tr><td>头脑风暴 / 书面头脑风暴</td><td>团队产生创意</td></tr>
+      <tr><td>流程图</td><td>定位问题在过程的位置</td></tr>
+
+      <tr><td rowspan="4"><strong>收敛聚焦</strong></td><td>是-非矩阵</td><td>区分相关/不相关因素</td></tr>
+      <tr><td>名义群组 / 配对比较</td><td>团队投票排序</td></tr>
+      <tr><td>帕累托图</td><td>识别 20% 关键因素</td></tr>
+      <tr><td>关系图 / 矩阵图</td><td>识别因素间关系</td></tr>
+
+      <tr><td rowspan="5"><strong>数据收集与分析</strong></td><td>抽样</td><td>用样本推测总体</td></tr>
+      <tr><td>检查表</td><td>系统化收集观测数据</td></tr>
+      <tr><td>柱状图 / 散点图</td><td>识别模式与相关性</td></tr>
+      <tr><td>问题集中图</td><td>定位问题物理位置</td></tr>
+      <tr><td>对比实验</td><td>好/坏品对比验证</td></tr>
+
+      <tr><td rowspan="3"><strong>构建论证</strong></td><td>金字塔结构</td><td>结论先行，论据支撑</td></tr>
+      <tr><td>5 Whys（深挖）</td><td>追到组织能消除的层级</td></tr>
+      <tr><td>关键事件法</td><td>聚焦最棘手的问题表征</td></tr>
+
+      <tr><td rowspan="5"><strong>方案决策</strong></td><td>加权标准评估</td><td>多方案打分选优</td></tr>
+      <tr><td>力场分析</td><td>识别推动/阻碍力</td></tr>
+      <tr><td>六项思考帽</td><td>多视角审视方案</td></tr>
+      <tr><td>TRIZ / SIT</td><td>面对工程矛盾的创新原理</td></tr>
+      <tr><td>树图</td><td>方案分解为可执行任务</td></tr>
+
+      <tr><td rowspan="2"><strong>实施与跟踪</strong></td><td>One Page 报告</td><td>信息同步与汇报</td></tr>
+      <tr><td>Jira / 措施跟踪表</td><td>状态追踪与闭环</td></tr>
+    </tbody>
+  </table>
+</div>
+
+
+
+<!-- 失败模式 -->
+<div class="section" id="p15">
+  <h2>⚠️ 常见失败模式与避坑指南</h2>
+  <table>
+    <thead>
+      <tr><th>失败模式</th><th>典型表现</th><th>避坑方法</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>问题定义不准</strong></td>
+        <td>问题陈述模糊，把症状/方案写进描述</td>
+        <td>4W1H1S + HTDQ + 框架四原则三道关</td>
+      </tr>
+      <tr>
+        <td><strong>停在表面原因</strong></td>
+        <td>找到第一层原因就结束</td>
+        <td>5 Whys 必须追到组织能消除的层级</td>
+      </tr>
+      <tr>
+        <td><strong>视野狭隘</strong></td>
+        <td>只让懂模块的人参与</td>
+        <td>跨部门组队，邀请生产、供应商、测试</td>
+      </tr>
+      <tr>
+        <td><strong>武断分析</strong></td>
+        <td>"我以前见过类似的，就是 X"</td>
+        <td>先列假设再验证，用证据而非经验</td>
+      </tr>
+      <tr>
+        <td><strong>方案先于分析</strong></td>
+        <td>没分析就直接想出解决方案</td>
+        <td>禁止"我觉得应该这样改"，先证因果再谈方案</td>
+      </tr>
+      <tr>
+        <td><strong>大流思维</strong></td>
+        <td>大家都说是 X，那就 X</td>
+        <td>用名义群组保证独立思考，再汇总</td>
+      </tr>
+      <tr>
+        <td><strong>没有验证有效</strong></td>
+        <td>措施做完就关 Jira</td>
+        <td>必须有"新批次/新版本无再发"的有效性指标</td>
+      </tr>
+      <tr>
+        <td><strong>只救火不治本</strong></td>
+        <td>只有 Short term 没有 Long term</td>
+        <td>每个根因都要对应至少一条 Long term 措施</td>
+      </tr>
+      <tr>
+        <td><strong>启动成本高</strong></td>
+        <td>等了两周还在凑人开会</td>
+        <td>提前固化模板和角色矩阵；管理层授权前置</td>
+      </tr>
+      <tr>
+        <td><strong>责任人指定优先于根因</strong></td>
+        <td>会议变成"找谁背锅"</td>
+        <td>主持人明确："找原因不找人"，背锅文化是 RCCA 头号杀手</td>
+      </tr>
+      <tr>
+        <td><strong>没有授权</strong></td>
+        <td>跨部门措施推不动</td>
+        <td>立项时管理层签字背书，定期向上汇报</td>
+      </tr>
+      <tr>
+        <td><strong>没有沉淀</strong></td>
+        <td>每次 RCCA 都从零开始</td>
+        <td>每次完成后归档案例 + 更新模板，建立组织记忆</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+
+<!-- Checklist -->
+<div class="section" id="p16">
+  <h2>✅ 完整 Checklist — 一张表跑完整个 RCCA</h2>
+  <table>
+    <thead>
+      <tr><th>阶段</th><th>检查项</th><th>状态</th></tr>
+    </thead>
+    <tbody>
+      <tr><td rowspan="3"><strong>0 立项</strong></td><td>已确认问题符合 RCCA 启动条件</td><td>☐</td></tr>
+      <tr><td>已获得管理层授权</td><td>☐</td></tr>
+      <tr><td>分析小组角色矩阵齐全</td><td>☐</td></tr>
+
+      <tr><td rowspan="3"><strong>1 定义</strong></td><td>4W1H1S 表格完整</td><td>☐</td></tr>
+      <tr><td>HTDQ 任务一句话清晰</td><td>☐</td></tr>
+      <tr><td>问题陈述通过框架四原则检查</td><td>☐</td></tr>
+
+      <tr><td rowspan="2"><strong>2 分解</strong></td><td>逆向因素清单完成（5 Whys / 鱼骨）</td><td>☐</td></tr>
+      <tr><td>正向变更清单完成（人机物法环测）</td><td>☐</td></tr>
+
+      <tr><td rowspan="2"><strong>3 收敛</strong></td><td>因素已分级（P1/P2/P3）</td><td>☐</td></tr>
+      <tr><td>剔除项有书面理由记录</td><td>☐</td></tr>
+
+      <tr><td rowspan="2"><strong>4 计划</strong></td><td>每个假设都有责任人 + 截止时间 + 验证方式</td><td>☐</td></tr>
+      <tr><td>下次会议时间已确定</td><td>☐</td></tr>
+
+      <tr><td rowspan="2"><strong>5 分析</strong></td><td>每个假设都有"成立/不成立"结论 + 证据</td><td>☐</td></tr>
+      <tr><td>新发现的可疑因素已回流到阶段 2-4</td><td>☐</td></tr>
+
+      <tr><td rowspan="2"><strong>6 论证</strong></td><td>金字塔结构论据完整</td><td>☐</td></tr>
+      <tr><td>5 Whys 追到组织能消除的层级</td><td>☐</td></tr>
+
+      <tr><td rowspan="2"><strong>7 措施</strong></td><td>Short term 措施齐全（拦截已影响范围）</td><td>☐</td></tr>
+      <tr><td>Long term 措施针对根因（防止再发）</td><td>☐</td></tr>
+
+      <tr><td><strong>8 汇报</strong></td><td>One Page 报告完成并归档</td><td>☐</td></tr>
+
+      <tr><td rowspan="3"><strong>9 闭环</strong></td><td>所有措施完成 + Jira 关闭</td><td>☐</td></tr>
+      <tr><td>有效性验证通过（新批次/新版本无再发）</td><td>☐</td></tr>
+      <tr><td>过程复盘完成 + 经验沉淀</td><td>☐</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout tip" style="margin-top:24px;">
+    🎯 <strong>实战节奏建议（参考）：</strong>
+    <ul style="margin-top:8px;">
+      <li>立项 + 定义：1 周内</li>
+      <li>分解 + 收敛 + 计划：第 1-2 周</li>
+      <li>关键分析（首轮）：第 2-4 周</li>
+      <li>必要时第 2 轮 PDCA：第 4-6 周</li>
+      <li>论证 + 措施 + 汇报：第 6-7 周</li>
+      <li>跟踪闭环：持续 1-3 个月</li>
+    </ul>
+    总周期通常 2 个月左右，重大问题可能更长。
+  </div>
+</div>
+
+<!-- Footer -->
+<div style="text-align:center; padding:30px; color:#94a3b8; font-size:.9em;">
+  <p>本框架以实战流程为主干，目标是<strong>可直接执行</strong></p>
+  <p style="margin-top:12px;">作者：Dongbo &nbsp;|&nbsp; RCCA可执行模板手册索取与经验交流邮箱：<a href="mailto:wangdongb@hotmail.com" style="color:#93c5fd;">wangdongb@hotmail.com</a></p>
+</div>
+
+</div>
+</body>
+</html>
